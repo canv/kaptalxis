@@ -6,48 +6,35 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
-public class MainController {
+@RequestMapping("/book")
+public class BooksController {
 
     @Autowired
     private BookService bookService;
 
-    @GetMapping("/books")
+    @GetMapping("/all")
     public List<Book> showAllBooks() {
         return bookService.getAllBooks();
     }
 
     @PostMapping("/create")
-    public HttpStatus createBook(@RequestParam("title") String title,
-                                 @RequestParam("description") String description,
-                                 @RequestParam("author") String author,
-                                 @RequestParam("isbn") String isbn,
-                                 @RequestParam("printYear") String printYear,
-                                 @RequestParam("file") MultipartFile bookFile,
-                                 @RequestParam("img") MultipartFile bookImg
-    ) throws IOException {
-        boolean isBookCreated = bookService.createBook(
-                title, description, author,
-                isbn, printYear, bookFile, bookImg);
-
-        if (isBookCreated) return HttpStatus.ACCEPTED;
+    public HttpStatus createBook(@Valid Book book) {
+        if (bookService.createBook(book)) return HttpStatus.ACCEPTED;
         else return HttpStatus.EXPECTATION_FAILED;
     }
 
-    @PutMapping("/mark")
-    public HttpStatus markRead(@RequestParam("mark") boolean mark,
-                               @RequestParam("id") Book book
-    ) {
-        if (bookService.markRead(book, mark)) return HttpStatus.ACCEPTED;
+    @PatchMapping("/mark")
+    public HttpStatus markRead(@RequestParam("id") Book book) {
+        if (bookService.markRead(book)) return HttpStatus.ACCEPTED;
         else return HttpStatus.EXPECTATION_FAILED;
     }
 
-    @PostMapping("/change")
+    @PutMapping("/change")
     public HttpStatus changeEdition(@RequestParam("id") Book book,
                                     @RequestParam("title") String title,
                                     @RequestParam("description") String description,
@@ -71,6 +58,6 @@ public class MainController {
             @RequestParam(value = "size", defaultValue = "1") Integer size,
             @RequestParam(value = "page", defaultValue = "1") Integer page
     ) {
-        return bookService.givePages(size, page);
+        return bookService.getPages(size, page);
     }
 }
