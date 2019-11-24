@@ -13,7 +13,7 @@ public class Book {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private UUID id;
+    private final UUID id = UUID.randomUUID();
 
     @NotBlank(message = "The book must have a title")
     @Length(max = 100, message = "It's too long (max size 100)!")
@@ -39,4 +39,7 @@ public class Book {
 
     @Column(name = "img_path")
     private String imgPath;
+
+    @Column(name = "file_path")
+    private String filePath;
 }

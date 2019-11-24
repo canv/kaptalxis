@@ -6,7 +6,8 @@ create table book (
     description text,
     author varchar(100) not null,
     isbn varchar(100),
-    printYear int4,
-    readAlready boolean,
-    imgPath varchar(2048)
+    print_year int4,
+    read_already boolean,
+    img_path varchar(2048),
+    file_path varchar(2048) not null
 );
