@@ -5,6 +5,7 @@ import org.hibernate.validator.constraints.Length;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.util.UUID;
 
 @Data
@@ -13,14 +14,16 @@ public class Book {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private final UUID id = UUID.randomUUID();
+    private UUID id;
 
+    @NotNull
     @NotBlank(message = "The book must have a title")
     @Length(max = 100, message = "It's too long (max size 100)!")
     private String title;
 
     private String description;
 
+    @NotNull
     @NotBlank(message = "The book must have an author")
     @Length(max = 100, message = "It's too long (max size 100)!")
     private String author;
