@@ -17,20 +17,9 @@ public class BooksController {
     @Autowired
     private BookService bookService;
 
-    @GetMapping("/all")
-    public List<Book> showAllBooks() {
-        return bookService.getAllBooks();
-    }
-
     @PostMapping("/create")
     public HttpStatus createBook(@Valid Book book) {
         if (bookService.createBook(book)) return HttpStatus.ACCEPTED;
-        else return HttpStatus.EXPECTATION_FAILED;
-    }
-
-    @PatchMapping("/mark")
-    public HttpStatus markRead(@RequestParam("id") Book book) {
-        if (bookService.markRead(book)) return HttpStatus.ACCEPTED;
         else return HttpStatus.EXPECTATION_FAILED;
     }
 
@@ -53,11 +42,27 @@ public class BooksController {
         else return HttpStatus.EXPECTATION_FAILED;
     }
 
+    @PatchMapping("/mark")
+    public HttpStatus markRead(@RequestParam("id") Book book) {
+        if (bookService.markRead(book)) return HttpStatus.ACCEPTED;
+        else return HttpStatus.EXPECTATION_FAILED;
+    }
+
     @GetMapping("/pages")
     public Page bookPagination(
             @RequestParam(value = "size", defaultValue = "1") Integer size,
             @RequestParam(value = "page", defaultValue = "1") Integer page
     ) {
         return bookService.getPages(size, page);
+    }
+
+    @GetMapping("/find")
+    public List<Book> findBook(@RequestParam("phrase") String phrase) {
+        return bookService.findBooksByPhrase(phrase);
+    }
+
+    @GetMapping("/all")
+    public List<Book> showAllBooks() {
+        return bookService.getAllBooks();
     }
 }

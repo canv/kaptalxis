@@ -1,16 +1,24 @@
 package com.app.kaptalxis.services.implementations;
 
+import com.app.kaptalxis.exceptions.BookNotFoundException;
 import com.app.kaptalxis.models.Book;
 import com.app.kaptalxis.repositories.BookRepository;
 import com.app.kaptalxis.services.FileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.UUID;
 
+@Service
 public class FileServiceImplementation implements FileService {
 
     @Autowired
@@ -36,6 +44,27 @@ public class FileServiceImplementation implements FileService {
             book.setImgPath(saveFile(img, uploadPathImg));
             return true;
         } else return false;
+    }
+
+    @Override
+    public Resource getBookFile(Book book) {
+        try {
+            Path filePath = Paths.get(book.getFilePath());
+            Resource resource = new UrlResource(filePath.toUri());
+            if(resource.exists()) {
+                return resource;
+            } else {
+                throw new BookNotFoundException();
+            }
+        } catch (MalformedURLException ex) {
+            throw new BookNotFoundException();
+        }
+    }
+
+    @Override
+    public Resource getBookImg(Book book) {
+        //in progress
+        return null;
     }
 
     private String saveFile(MultipartFile fileOrImg, String uploadPath) throws IOException {
