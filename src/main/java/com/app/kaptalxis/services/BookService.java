@@ -13,8 +13,6 @@ public interface BookService {
     boolean updateBook(Book book, String title, String description,
                        String isbn, String printYear);
 
-    boolean deleteBook(Book book);
-
     List<Book> getAllBooks();
 
     List<Book> findBooksByPhrase(String phrase);

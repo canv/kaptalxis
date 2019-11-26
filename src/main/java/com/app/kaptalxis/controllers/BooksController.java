@@ -7,7 +7,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -17,8 +16,13 @@ public class BooksController {
     @Autowired
     private BookService bookService;
 
+    @GetMapping
+    public List<Book> showAllBooks() {
+        return bookService.getAllBooks();
+    }
+
     @PostMapping("/create")
-    public HttpStatus createBook(@Valid Book book) {
+    public HttpStatus createBook(@RequestBody Book book) {
         if (bookService.createBook(book)) return HttpStatus.ACCEPTED;
         else return HttpStatus.EXPECTATION_FAILED;
     }
@@ -59,10 +63,5 @@ public class BooksController {
     @GetMapping("/find")
     public List<Book> findBook(@RequestParam("phrase") String phrase) {
         return bookService.findBooksByPhrase(phrase);
-    }
-
-    @GetMapping("/all")
-    public List<Book> showAllBooks() {
-        return bookService.getAllBooks();
     }
 }

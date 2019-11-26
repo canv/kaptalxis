@@ -1,13 +1,10 @@
 package com.app.kaptalxis.controllers;
 
-import com.app.kaptalxis.exceptions.BookNotFoundException;
 import com.app.kaptalxis.models.Book;
 import com.app.kaptalxis.services.FileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -35,37 +32,22 @@ public class FilesController {
     public HttpStatus addBookImg(@RequestParam("id") Book book,
                                  @RequestParam("bookFile") MultipartFile bookImg
     ) throws IOException {
-        if (fileService.saveBookFile(book, bookImg))
+        if (fileService.saveBookImg(book, bookImg))
             return HttpStatus.ACCEPTED;
         else return HttpStatus.EXPECTATION_FAILED;
     }
 
     @GetMapping("/getFile/{book}")
-    public ResponseEntity<Resource> getBookFile(@PathVariable("id") Book book,
+    public ResponseEntity<Resource> getBookFile(@PathVariable("id") String id,
                                                 HttpServletRequest request
     ) {
-        Resource resource = fileService.getBookFile(book);
-        String contentType;
-        try {
-            contentType = request
-                    .getServletContext()
-                    .getMimeType(resource.getFile().getAbsolutePath());
-        } catch (IOException ex) {
-            throw new BookNotFoundException();
-        }
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(contentType))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
-                .body(resource);
+        return fileService.getBookFile(request, id);
     }
 
     @GetMapping("/getImg/{book}")
-    public HttpStatus getBookImg(@RequestParam("id") Book book,
-                                 @RequestParam("bookFile") MultipartFile bookImg
-    ) throws IOException {
-        if (fileService.saveBookFile(book, bookImg))
-            return HttpStatus.ACCEPTED;
-        else return HttpStatus.EXPECTATION_FAILED;
+    public ResponseEntity<Resource> getBookImg(@PathVariable("id") String id,
+                                               HttpServletRequest request
+    ) {
+        return fileService.getBookImg(request, id);
     }
 }
