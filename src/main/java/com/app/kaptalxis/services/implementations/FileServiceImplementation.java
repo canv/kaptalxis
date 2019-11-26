@@ -1,6 +1,7 @@
 package com.app.kaptalxis.services.implementations;
 
 import com.app.kaptalxis.exceptions.BookNotFoundException;
+import com.app.kaptalxis.exceptions.InvalidIdException;
 import com.app.kaptalxis.models.Book;
 import com.app.kaptalxis.repositories.BookRepository;
 import com.app.kaptalxis.services.FileService;
@@ -8,12 +9,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
@@ -22,7 +26,7 @@ import java.util.UUID;
 public class FileServiceImplementation implements FileService {
 
     @Autowired
-    BookRepository bookRepository;
+    private BookRepository bookRepository;
 
     @Value("${upload.path.img}")
     private String uploadPathImg;
@@ -47,24 +51,47 @@ public class FileServiceImplementation implements FileService {
     }
 
     @Override
-    public Resource getBookFile(Book book) {
-        try {
-            Path filePath = Paths.get(book.getFilePath());
-            Resource resource = new UrlResource(filePath.toUri());
-            if(resource.exists()) {
-                return resource;
-            } else {
-                throw new BookNotFoundException();
-            }
-        } catch (MalformedURLException ex) {
-            throw new BookNotFoundException();
-        }
+    public ResponseEntity<Resource> getBookFile(HttpServletRequest request, String id) {
+        if (id != null && !id.isEmpty()) {
+            Book book = bookRepository
+                    .findById(UUID.fromString(id))
+                    .orElseThrow(BookNotFoundException::new);
+            return getResource(request, book.getFilePath());
+
+        } else throw new InvalidIdException();
     }
 
     @Override
-    public Resource getBookImg(Book book) {
-        //in progress
-        return null;
+    public ResponseEntity<Resource> getBookImg(HttpServletRequest request, String id) {
+        if (id != null && !id.isEmpty()) {
+            Book book = bookRepository
+                    .findById(UUID.fromString(id))
+                    .orElseThrow(BookNotFoundException::new);
+            return getResource(request, book.getImgPath());
+
+        } else throw new InvalidIdException();
+    }
+
+    private ResponseEntity<Resource> getResource(HttpServletRequest request, String path) {
+        try {
+            Path filePath = Paths.get(path);
+            Resource resource = new UrlResource(filePath.toUri());
+            if (resource.exists()) {
+                String contentType;
+                contentType = request
+                        .getServletContext()
+                        .getMimeType(resource.getFile().getAbsolutePath());
+
+                return ResponseEntity.ok()
+                        .contentType(MediaType.parseMediaType(contentType))
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+                        .body(resource);
+
+            } else throw new BookNotFoundException();
+
+        } catch (IOException ex) {
+            throw new BookNotFoundException();
+        }
     }
 
     private String saveFile(MultipartFile fileOrImg, String uploadPath) throws IOException {

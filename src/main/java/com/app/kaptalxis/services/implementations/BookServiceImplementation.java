@@ -20,7 +20,7 @@ public class BookServiceImplementation implements BookService {
 
     @Override
     public List<Book> findBooksByPhrase(String phrase) {
-        if (phrase != null)
+        if (phrase != null && !phrase.isEmpty())
             return bookRepository
                     .findByDescriptionIgnoreCase(phrase);
         else throw new BookNotFoundException();
@@ -63,14 +63,6 @@ public class BookServiceImplementation implements BookService {
             book.setReadAlready(false);
             return true;
         } else return false;
-    }
-
-
-    @Override
-    public boolean deleteBook(Book book) {
-        if (isBookInDb(book)) return false;
-        bookRepository.delete(book);
-        return true;
     }
 
     @Override
