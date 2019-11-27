@@ -1,13 +1,16 @@
 package com.app.kaptalxis.controllers;
 
+import com.app.kaptalxis.exceptions.InvalidIdException;
 import com.app.kaptalxis.models.Book;
 import com.app.kaptalxis.services.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/book")
@@ -17,51 +20,54 @@ public class BooksController {
     private BookService bookService;
 
     @GetMapping
-    public List<Book> showAllBooks() {
-        return bookService.getAllBooks();
+    public ResponseEntity<List<Book>> showAllBooks() {
+        return new ResponseEntity<>(bookService.getAllBooks(), HttpStatus.OK);
     }
 
-    @PostMapping("/create")
-    public HttpStatus createBook(@RequestBody Book book) {
-        if (bookService.createBook(book)) return HttpStatus.ACCEPTED;
-        else return HttpStatus.EXPECTATION_FAILED;
+    @PostMapping
+    public ResponseEntity<Book> createBook(@RequestBody Book book) {
+        Book saved = bookService.createBook(book);
+        return new ResponseEntity<>(saved, HttpStatus.OK);
     }
 
-    @PutMapping("/change")
-    public HttpStatus changeEdition(@RequestParam("id") Book book,
-                                    @RequestParam("title") String title,
-                                    @RequestParam("description") String description,
-                                    @RequestParam("isbn") String isbn,
-                                    @RequestParam("printYear") String printYear
-    ) {
-        book.setTitle(title);
-        book.setDescription(description);
-        book.setIsbn(isbn);
-        book.setPrintYear(Integer.parseInt(printYear));
-        book.setReadAlready(false);
-        boolean isEditionChanged = bookService.updateBook(
-                book, title, description, isbn, printYear);
-
-        if (isEditionChanged) return HttpStatus.ACCEPTED;
-        else return HttpStatus.EXPECTATION_FAILED;
+    @PutMapping
+    public ResponseEntity<Book> changeEdition(@RequestBody Book book) {
+        if (book != null) {
+            Book saved = bookService.updateBook(book);
+            return new ResponseEntity<>(saved, HttpStatus.OK);
+        } else return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
     }
 
-    @PatchMapping("/mark")
-    public HttpStatus markRead(@RequestParam("id") Book book) {
-        if (bookService.markRead(book)) return HttpStatus.ACCEPTED;
-        else return HttpStatus.EXPECTATION_FAILED;
+    @PatchMapping("/mark/{id}")
+    public ResponseEntity<Book> markRead(@PathVariable("id") String id) {
+        if (id != null && !id.isEmpty()) {
+            Book readBook = bookService.markRead(UUID.fromString(id));
+            return new ResponseEntity<>(readBook, HttpStatus.OK);
+        } else throw new InvalidIdException();
     }
 
     @GetMapping("/pages")
-    public Page bookPagination(
+    public ResponseEntity<Page> bookPagination(
             @RequestParam(value = "size", defaultValue = "1") Integer size,
             @RequestParam(value = "page", defaultValue = "1") Integer page
     ) {
-        return bookService.getPages(size, page);
+        Page pages = bookService.getPages(size, page);
+        return new ResponseEntity<>(pages, HttpStatus.OK);
     }
 
-    @GetMapping("/find")
-    public List<Book> findBook(@RequestParam("phrase") String phrase) {
-        return bookService.findBooksByPhrase(phrase);
+    @GetMapping("/findByPhrase/{phrase}")
+    public ResponseEntity<List<Book>> findByPhrase(@PathVariable("phrase") String phrase) {
+        if (phrase != null && !phrase.isEmpty()) {
+            List<Book> booksByPhrase = bookService.findBooksByPhrase(phrase);
+            return new ResponseEntity<>(booksByPhrase, HttpStatus.OK);
+        } else return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+    }
+
+    @GetMapping("findById/{id}")
+    public ResponseEntity<Book> findBookById(@PathVariable("id") String id) {
+        if (id != null && !id.isEmpty()) {
+            Book foundBook = bookService.getBookById(UUID.fromString(id));
+            return new ResponseEntity<>(foundBook, HttpStatus.OK);
+        } else throw new InvalidIdException();
     }
 }

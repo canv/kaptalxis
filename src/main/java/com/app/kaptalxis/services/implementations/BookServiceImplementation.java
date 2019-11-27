@@ -1,6 +1,8 @@
 package com.app.kaptalxis.services.implementations;
 
+import com.app.kaptalxis.exceptions.BookCopyFoundException;
 import com.app.kaptalxis.exceptions.BookNotFoundException;
+import com.app.kaptalxis.exceptions.InvalidIdException;
 import com.app.kaptalxis.models.Book;
 import com.app.kaptalxis.repositories.BookRepository;
 import com.app.kaptalxis.services.BookService;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 @Service
 public class BookServiceImplementation implements BookService {
@@ -20,10 +23,8 @@ public class BookServiceImplementation implements BookService {
 
     @Override
     public List<Book> findBooksByPhrase(String phrase) {
-        if (phrase != null && !phrase.isEmpty())
-            return bookRepository
-                    .findByDescriptionIgnoreCase(phrase);
-        else throw new BookNotFoundException();
+        return bookRepository
+                .findByDescriptionIgnoreCase(phrase);
     }
 
     @Override
@@ -32,37 +33,44 @@ public class BookServiceImplementation implements BookService {
     }
 
     @Override
-    public boolean markRead(Book book) {
-        if (isBookInDb(book)) {
-            if (!book.isReadAlready()) {
-                book.setReadAlready(true);
-                return true;
-            } else return false;
-        } else return false;
+    public Book markRead(UUID bookId) {
+        Book readBook = getBookById(bookId);
+        if (readBook != null) {
+            readBook.setReadAlready(true);
+            bookRepository.save(readBook);
+            return readBook;
+        } else throw new BookNotFoundException();
     }
 
     @Override
-    public boolean createBook(Book book) {
+    public Book createBook(Book book) {
         if (Objects.isNull(bookRepository.findById(book.getId()))) {
             book.setReadAlready(false);
             bookRepository.save(book);
-            return true;
-        } else return false;
+            return book;
+        } else throw new BookCopyFoundException();
     }
 
     @Override
-    public boolean updateBook(Book book, String title,
-                              String description, String isbn,
-                              String printYear
-    ) {
-        if (isBookInDb(book)) {
-            book.setTitle(title);
-            book.setDescription(description);
-            book.setIsbn(isbn);
-            book.setPrintYear(Integer.parseInt(printYear));
-            book.setReadAlready(false);
-            return true;
-        } else return false;
+    public Book updateBook(Book book) {
+        Book updateBook = getBookById(book.getId());
+        if (updateBook != null) {
+            String updateTitle = book.getTitle();
+            if (updateTitle != null)
+                updateBook.setTitle(updateTitle);
+            String updateDescription = book.getDescription();
+            if (updateDescription != null)
+                updateBook.setDescription(updateDescription);
+            String updateIsbn = book.getIsbn();
+            if (updateIsbn != null)
+                updateBook.setIsbn(updateIsbn);
+            int updatePrintYear = book.getPrintYear();
+            if (updatePrintYear != updateBook.getPrintYear())
+                updateBook.setPrintYear(updatePrintYear);
+            updateBook.setReadAlready(false);
+            bookRepository.save(updateBook);
+            return updateBook;
+        } else throw new BookNotFoundException();
     }
 
     @Override
@@ -70,6 +78,13 @@ public class BookServiceImplementation implements BookService {
         if (size != null | page != null)
             return bookRepository.findAll(PageRequest.of(page, size));
         return null;
+    }
+
+    @Override
+    public Book getBookById(UUID bookId) {
+        return bookRepository
+                .findById(bookId)
+                .orElse(null);
     }
 
     private boolean isBookInDb(Book book) {

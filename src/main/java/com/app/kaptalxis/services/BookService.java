@@ -5,19 +5,21 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public interface BookService {
-    boolean createBook(Book book);
+    Book createBook(Book book);
 
-    boolean updateBook(Book book, String title, String description,
-                       String isbn, String printYear);
+    Book updateBook(Book book);
+
+    Book markRead(UUID bookId);
 
     List<Book> getAllBooks();
 
     List<Book> findBooksByPhrase(String phrase);
 
-    boolean markRead(Book book);
-
     Page getPages(Integer size, Integer page);
+
+    Book getBookById(UUID bookId);
 }

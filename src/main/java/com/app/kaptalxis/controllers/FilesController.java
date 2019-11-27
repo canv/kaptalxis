@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
 @RestController
-@RequestMapping("/file")
+@RequestMapping("/book")
 public class FilesController {
 
     @Autowired
@@ -37,14 +37,14 @@ public class FilesController {
         else return HttpStatus.EXPECTATION_FAILED;
     }
 
-    @GetMapping("/getFile/{book}")
+    @GetMapping("/getFile/{id}")
     public ResponseEntity<Resource> getBookFile(@PathVariable("id") String id,
                                                 HttpServletRequest request
     ) {
         return fileService.getBookFile(request, id);
     }
 
-    @GetMapping("/getImg/{book}")
+    @GetMapping("/getImg/{id}")
     public ResponseEntity<Resource> getBookImg(@PathVariable("id") String id,
                                                HttpServletRequest request
     ) {
