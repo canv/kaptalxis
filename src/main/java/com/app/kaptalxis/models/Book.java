@@ -2,10 +2,10 @@ package com.app.kaptalxis.models;
 
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
+import org.hibernate.validator.constraints.Range;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import java.util.UUID;
 
 @Data
@@ -16,25 +16,22 @@ public class Book {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    @NotNull
     @NotBlank(message = "The book must have a title")
     @Length(max = 100, message = "It's too long (max size 100)!")
     private String title;
 
     private String description;
 
-    @NotNull
     @NotBlank(message = "The book must have an author")
     @Length(max = 100, message = "It's too long (max size 100)!")
     private String author;
 
     @NotBlank(message = "The book should have ISBN")
-    @Length(max = 100, message = "It's too long (max size 20)!")
+    @Length(max = 20, message = "It's too long (max size 20)!")
     private String isbn;
 
     @Column(name = "print_year")
-    @NotBlank(message = "The book should have a year of publication")
-    @Length(max = 4, message = "It's too long (max size 4, like 1991)!")
+    @Range(min = 1, max = 2222, message = "It's too long (max size 4, like 1991)!")
     private int printYear;
 
     @Column(name = "read_already")

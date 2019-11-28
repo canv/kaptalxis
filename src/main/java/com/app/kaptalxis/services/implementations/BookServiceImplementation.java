@@ -44,8 +44,12 @@ public class BookServiceImplementation implements BookService {
 
     @Override
     public Book createBook(Book book) {
-        if (Objects.isNull(bookRepository.findById(book.getId()))) {
+        if(book == null) throw new BookNotFoundException();
+        boolean isNotPresentByTitle = bookRepository
+                .findByTitleIgnoreCase(book.getTitle()) == null;
+        if (isNotPresentByTitle) {
             book.setReadAlready(false);
+//            book.setId(UUID.randomUUID());
             bookRepository.save(book);
             return book;
         } else throw new BookCopyFoundException();
@@ -85,9 +89,5 @@ public class BookServiceImplementation implements BookService {
         return bookRepository
                 .findById(bookId)
                 .orElse(null);
-    }
-
-    private boolean isBookInDb(Book book) {
-        return bookRepository.findById(book.getId()).isPresent();
     }
 }
