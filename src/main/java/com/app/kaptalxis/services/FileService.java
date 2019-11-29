@@ -19,4 +19,6 @@ public interface FileService {
     ResponseEntity<Resource> getBookFile(HttpServletRequest request, String id);
 
     ResponseEntity<Resource> getBookImg(HttpServletRequest request, String id);
+
+    void easySaveBookFile(String id, MultipartFile bookFile) throws IOException;
 }

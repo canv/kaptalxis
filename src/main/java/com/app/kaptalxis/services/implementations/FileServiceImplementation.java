@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
@@ -70,6 +71,24 @@ public class FileServiceImplementation implements FileService {
             return getResource(request, book.getImgPath());
 
         } else throw new InvalidIdException();
+    }
+
+    @Override
+    public void easySaveBookFile(String id, MultipartFile bookFile) throws IOException {
+        Book book = bookRepository.findById(UUID.fromString(id)).orElseThrow(InvalidIdException::new);
+
+        byte[] bytes = bookFile.getBytes();
+
+        String resultFilePath =
+                uploadPathFile + "/" +
+                UUID.randomUUID().toString() + "." +
+                bookFile.getOriginalFilename();
+        Path path = Paths.get(resultFilePath);
+        Files.write(path, bytes);
+
+        book.setFilePath(resultFilePath);
+        bookRepository.save(book);
+
     }
 
     private ResponseEntity<Resource> getResource(HttpServletRequest request, String path) {

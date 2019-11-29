@@ -50,4 +50,24 @@ public class FilesController {
     ) {
         return fileService.getBookImg(request, id);
     }
+
+    @PostMapping("/easyAddFile/{id}")
+    public ResponseEntity<?> easyAddBookFile(@PathVariable("id") String id,
+                                             @RequestParam("bookFile") MultipartFile bookFile
+    ) {
+        if (bookFile.isEmpty()) {
+            return new ResponseEntity<>("please select a file!", HttpStatus.OK);
+        } else {
+            try {
+
+                fileService.easySaveBookFile(id, bookFile);
+
+            } catch (IOException e) {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+
+            return new ResponseEntity<>("Successfully uploaded - " +
+                    bookFile.getOriginalFilename(), HttpStatus.OK);
+        }
+    }
 }
