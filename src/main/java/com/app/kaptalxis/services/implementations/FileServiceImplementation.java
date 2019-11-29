@@ -74,21 +74,21 @@ public class FileServiceImplementation implements FileService {
     }
 
     @Override
-    public void easySaveBookFile(String id, MultipartFile bookFile) throws IOException {
+    public UUID easySaveBookFile(String id, MultipartFile bookFile) throws IOException {
         Book book = bookRepository.findById(UUID.fromString(id)).orElseThrow(InvalidIdException::new);
 
         byte[] bytes = bookFile.getBytes();
 
         String resultFilePath =
                 uploadPathFile + "/" +
-                UUID.randomUUID().toString() + "." +
+                UUID.randomUUID().toString() + "--" +
                 bookFile.getOriginalFilename();
         Path path = Paths.get(resultFilePath);
         Files.write(path, bytes);
 
         book.setFilePath(resultFilePath);
         bookRepository.save(book);
-
+        return book.getId();
     }
 
     private ResponseEntity<Resource> getResource(HttpServletRequest request, String path) {

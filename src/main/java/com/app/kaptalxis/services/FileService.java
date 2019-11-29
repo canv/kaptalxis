@@ -8,6 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.util.UUID;
 
 @Service
 public interface FileService {
@@ -20,5 +21,5 @@ public interface FileService {
 
     ResponseEntity<Resource> getBookImg(HttpServletRequest request, String id);
 
-    void easySaveBookFile(String id, MultipartFile bookFile) throws IOException;
+    UUID easySaveBookFile(String id, MultipartFile bookFile) throws IOException;
 }

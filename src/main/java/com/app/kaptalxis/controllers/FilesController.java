@@ -11,6 +11,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.net.URI;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/book")
@@ -58,16 +60,17 @@ public class FilesController {
         if (bookFile.isEmpty()) {
             return new ResponseEntity<>("please select a file!", HttpStatus.OK);
         } else {
+            UUID bookId;
+
             try {
 
-                fileService.easySaveBookFile(id, bookFile);
+                bookId = fileService.easySaveBookFile(id, bookFile);
 
             } catch (IOException e) {
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
 
-            return new ResponseEntity<>("Successfully uploaded - " +
-                    bookFile.getOriginalFilename(), HttpStatus.OK);
+            return new ResponseEntity<>(bookId, HttpStatus.OK);
         }
     }
 }
