@@ -1,8 +1,12 @@
 package com.app.kaptalxis.controllers;
 
+import com.app.kaptalxis.exceptions.BookNotFoundException;
+import com.app.kaptalxis.exceptions.InvalidFileException;
+import com.app.kaptalxis.exceptions.InvalidIdException;
 import com.app.kaptalxis.models.Book;
 import com.app.kaptalxis.services.FileService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,8 +15,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.net.URI;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/book")
@@ -21,23 +23,11 @@ public class FilesController {
     @Autowired
     private FileService fileService;
 
-    @PostMapping("/addFile/{book}")
-    public HttpStatus addBookFile(@RequestParam("id") Book book,
-                                  @RequestParam("bookFile") MultipartFile bookFile
-    ) throws IOException {
-        if (fileService.saveBookFile(book, bookFile))
-            return HttpStatus.ACCEPTED;
-        else return HttpStatus.EXPECTATION_FAILED;
-    }
+    @Value("${upload.path.img}")
+    private String uploadPathImg;
 
-    @PostMapping("/addImg/{book}")
-    public HttpStatus addBookImg(@RequestParam("id") Book book,
-                                 @RequestParam("bookFile") MultipartFile bookImg
-    ) throws IOException {
-        if (fileService.saveBookImg(book, bookImg))
-            return HttpStatus.ACCEPTED;
-        else return HttpStatus.EXPECTATION_FAILED;
-    }
+    @Value("${upload.path.file}")
+    private String uploadPathFile;
 
     @GetMapping("/getFile/{id}")
     public ResponseEntity<Resource> getBookFile(@PathVariable("id") String id,
@@ -53,24 +43,39 @@ public class FilesController {
         return fileService.getBookImg(request, id);
     }
 
-    @PostMapping("/easyAddFile/{id}")
-    public ResponseEntity<?> easyAddBookFile(@PathVariable("id") String id,
-                                             @RequestParam("bookFile") MultipartFile bookFile
+
+    @PostMapping("/addFile/{id}")
+    public ResponseEntity<?> addBookFile(@PathVariable("id") String id,
+                                         @RequestParam("bookFile") MultipartFile bookFile
     ) {
-        if (bookFile.isEmpty()) {
-            return new ResponseEntity<>("please select a file!", HttpStatus.OK);
-        } else {
-            UUID bookId;
+        return saveFileExcHandling(id, uploadPathFile, bookFile);
+    }
 
-            try {
+    @PostMapping("/addImg/{id}")
+    public ResponseEntity<?> addImgFile(@PathVariable("id") String id,
+                                         @RequestParam("bookImg") MultipartFile bookImg
+    ) {
+        return saveFileExcHandling(id, uploadPathImg, bookImg);
+    }
 
-                bookId = fileService.easySaveBookFile(id, bookFile);
 
-            } catch (IOException e) {
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-            }
+    private ResponseEntity<?> saveFileExcHandling(String id, String path, MultipartFile file) {
+        try {
+            return new ResponseEntity<>(fileService.saveFile(id, path, file),
+                    HttpStatus.OK);
 
-            return new ResponseEntity<>(bookId, HttpStatus.OK);
+        } catch (IOException e) {
+            return new ResponseEntity<>("Error writing file - " + file.getOriginalFilename(),
+                    HttpStatus.BAD_REQUEST);
+        } catch (IllegalArgumentException | InvalidIdException e) {
+            return new ResponseEntity<>("invalid book id - " + id,
+                    HttpStatus.BAD_REQUEST);
+        } catch (BookNotFoundException e) {
+            return new ResponseEntity<>("No book found for this ID - " + id,
+                    HttpStatus.BAD_REQUEST);
+        } catch (InvalidFileException e) {
+            return new ResponseEntity<>("File is not input",
+                    HttpStatus.OK);
         }
     }
 }
