@@ -11,6 +11,8 @@ import java.util.UUID;
 
 @Repository
 public interface BookRepository extends JpaRepository<Book, UUID> {
-    List<Book> findByDescriptionIgnoreCase(String author);
+    Book findByTitleIgnoreCase(String title);
+    List<Book> findByAuthorIgnoreCase(String author);
+    List<Book> findByDescriptionIgnoreCase(String description);
     Page<Book> findAll(Pageable pageable);
 }

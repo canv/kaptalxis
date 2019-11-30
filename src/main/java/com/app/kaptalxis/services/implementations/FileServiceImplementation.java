@@ -1,6 +1,7 @@
 package com.app.kaptalxis.services.implementations;
 
 import com.app.kaptalxis.exceptions.BookNotFoundException;
+import com.app.kaptalxis.exceptions.InvalidFileException;
 import com.app.kaptalxis.exceptions.InvalidIdException;
 import com.app.kaptalxis.models.Book;
 import com.app.kaptalxis.repositories.BookRepository;
@@ -28,29 +29,7 @@ public class FileServiceImplementation implements FileService {
     @Autowired
     private BookRepository bookRepository;
 
-    @Value("${upload.path.img}")
-    private String uploadPathImg;
 
-    @Value("${upload.path.file}")
-    private String uploadPathFile;
-
-    @Override
-    public boolean saveBookFile(Book book, MultipartFile file) throws IOException {
-        if (file != null && !file.getOriginalFilename().isEmpty()) {
-            book.setFilePath(saveFile(file, uploadPathFile));
-            return true;
-        } else return false;
-    }
-
-    @Override
-    public boolean saveBookImg(Book book, MultipartFile img) throws IOException {
-        if (img != null && !img.getOriginalFilename().isEmpty()) {
-            book.setImgPath(saveFile(img, uploadPathImg));
-            return true;
-        } else return false;
-    }
-
-    @Override
     public ResponseEntity<Resource> getBookFile(HttpServletRequest request, String id) {
         if (id != null && !id.isEmpty()) {
             Book book = bookRepository
@@ -61,7 +40,6 @@ public class FileServiceImplementation implements FileService {
         } else throw new InvalidIdException();
     }
 
-    @Override
     public ResponseEntity<Resource> getBookImg(HttpServletRequest request, String id) {
         if (id != null && !id.isEmpty()) {
             Book book = bookRepository
@@ -70,6 +48,35 @@ public class FileServiceImplementation implements FileService {
             return getResource(request, book.getImgPath());
 
         } else throw new InvalidIdException();
+    }
+
+    @Override
+    public UUID saveFile(String id, String uploadPath, MultipartFile bookFile)
+            throws IOException, IllegalArgumentException,
+            InvalidIdException, InvalidFileException, BookNotFoundException {
+
+        if (id != null && !id.isEmpty()) {
+            Book book = bookRepository
+                    .findById(UUID.fromString(id))
+                    .orElseThrow(BookNotFoundException::new);
+
+            if (bookFile != null && !bookFile.getOriginalFilename().isEmpty()) {
+                File uploadDir = new File(uploadPath);
+                if (!uploadDir.exists()) uploadDir.mkdir();
+                String uuidFile = UUID.randomUUID().toString();
+                String resultFileName = uuidFile + "." + bookFile.getOriginalFilename();
+
+                bookFile.transferTo(new File(uploadPath + "/" + resultFileName));
+                bookRepository.save(book);
+                return book.getId();
+            } else throw new InvalidFileException();
+        } else throw new InvalidIdException();
+
+    }
+
+    @Override
+    public MultipartFile loadFile(String id, String uploadPath) throws IOException {
+        return null;
     }
 
     private ResponseEntity<Resource> getResource(HttpServletRequest request, String path) {
@@ -92,15 +99,5 @@ public class FileServiceImplementation implements FileService {
         } catch (IOException ex) {
             throw new BookNotFoundException();
         }
-    }
-
-    private String saveFile(MultipartFile fileOrImg, String uploadPath) throws IOException {
-        File uploadDir = new File(uploadPath);
-        if (uploadDir.exists()) uploadDir.mkdir();
-        String uuidFile = UUID.randomUUID().toString();
-        String resultFileName = uuidFile + "." + fileOrImg.getOriginalFilename();
-
-        fileOrImg.transferTo(new File(uploadPath + "/" + resultFileName));
-        return resultFileName;
     }
 }
