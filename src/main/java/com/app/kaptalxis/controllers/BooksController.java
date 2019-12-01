@@ -1,6 +1,5 @@
 package com.app.kaptalxis.controllers;
 
-import com.app.kaptalxis.exceptions.InvalidIdException;
 import com.app.kaptalxis.models.Book;
 import com.app.kaptalxis.services.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,29 +20,26 @@ public class BooksController {
 
     @GetMapping
     public ResponseEntity<List<Book>> showAllBooks() {
-        return new ResponseEntity<>(bookService.getAllBooks(), HttpStatus.OK);
+        return ResponseEntity.ok(bookService.getAllBooks());
     }
 
     @PostMapping
     public ResponseEntity<Book> createBook(@RequestBody Book book) {
-        Book saved = bookService.createBook(book);
-        return new ResponseEntity<>(saved, HttpStatus.OK);
+        return ResponseEntity.ok(bookService.createBook(book));
     }
 
     @PutMapping
     public ResponseEntity<Book> changeEdition(@RequestBody Book book) {
         if (book != null) {
-            Book saved = bookService.updateBook(book);
-            return new ResponseEntity<>(saved, HttpStatus.OK);
+            return ResponseEntity.ok(bookService.updateBook(book));
         } else return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
     }
 
     @PatchMapping("/mark/{id}")
-    public ResponseEntity<Book> markRead(@PathVariable("id") String id) {
+    public ResponseEntity<?> markRead(@PathVariable("id") String id) {
         if (id != null && !id.isEmpty()) {
-            Book readBook = bookService.markRead(UUID.fromString(id));
-            return new ResponseEntity<>(readBook, HttpStatus.OK);
-        } else throw new InvalidIdException();
+            return ResponseEntity.ok(bookService.markRead(UUID.fromString(id)));
+        } else return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
     }
 
     @GetMapping("/pages")
@@ -51,23 +47,20 @@ public class BooksController {
             @RequestParam(value = "size", defaultValue = "1") Integer size,
             @RequestParam(value = "page", defaultValue = "1") Integer page
     ) {
-        Page pages = bookService.getPages(size, page);
-        return new ResponseEntity<>(pages, HttpStatus.OK);
+        return ResponseEntity.ok(bookService.getPages(size, page));
     }
 
     @GetMapping("/findByPhrase/{phrase}")
     public ResponseEntity<List<Book>> findByPhrase(@PathVariable("phrase") String phrase) {
         if (phrase != null && !phrase.isEmpty()) {
-            List<Book> booksByPhrase = bookService.findBooksByPhrase(phrase);
-            return new ResponseEntity<>(booksByPhrase, HttpStatus.OK);
+            return ResponseEntity.ok(bookService.findBooksByPhrase(phrase));
         } else return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
     }
 
     @GetMapping("findById/{id}")
     public ResponseEntity<Book> findBookById(@PathVariable("id") String id) {
         if (id != null && !id.isEmpty()) {
-            Book foundBook = bookService.getBookById(UUID.fromString(id));
-            return new ResponseEntity<>(foundBook, HttpStatus.OK);
-        } else throw new InvalidIdException();
+            return ResponseEntity.ok(bookService.getBookById(UUID.fromString(id)));
+        } else return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
     }
 }
