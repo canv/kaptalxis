@@ -3,17 +3,14 @@ package com.app.kaptalxis.controllers;
 import com.app.kaptalxis.exceptions.BookNotFoundException;
 import com.app.kaptalxis.exceptions.InvalidFileException;
 import com.app.kaptalxis.exceptions.InvalidIdException;
-import com.app.kaptalxis.models.Book;
 import com.app.kaptalxis.services.FileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
 @RestController
@@ -30,17 +27,13 @@ public class FilesController {
     private String uploadPathFile;
 
     @GetMapping("/getFile/{id}")
-    public ResponseEntity<Resource> getBookFile(@PathVariable("id") String id,
-                                                HttpServletRequest request
-    ) {
-        return fileService.getBookFile(request, id);
+    public ResponseEntity<?> getBookFile(@PathVariable("id") String id) {
+        return loadFileExcHandling(id, uploadPathFile);
     }
 
     @GetMapping("/getImg/{id}")
-    public ResponseEntity<Resource> getBookImg(@PathVariable("id") String id,
-                                               HttpServletRequest request
-    ) {
-        return fileService.getBookImg(request, id);
+    public ResponseEntity<?> getBookImg(@PathVariable("id") String id) {
+        return loadFileExcHandling(id, uploadPathImg);
     }
 
 
@@ -48,21 +41,36 @@ public class FilesController {
     public ResponseEntity<?> addBookFile(@PathVariable("id") String id,
                                          @RequestParam("bookFile") MultipartFile bookFile
     ) {
-        return saveFileExcHandling(id, uploadPathFile, bookFile);
+        return saveFileExcHandling(id, uploadPathFile, bookFile, "File");
     }
 
     @PostMapping("/addImg/{id}")
     public ResponseEntity<?> addImgFile(@PathVariable("id") String id,
-                                         @RequestParam("bookImg") MultipartFile bookImg
+                                        @RequestParam("bookImg") MultipartFile bookImg
     ) {
-        return saveFileExcHandling(id, uploadPathImg, bookImg);
+        return saveFileExcHandling(id, uploadPathImg, bookImg, "Img");
     }
 
 
-    private ResponseEntity<?> saveFileExcHandling(String id, String path, MultipartFile file) {
+    private ResponseEntity<?> loadFileExcHandling(String id, String path) {
         try {
-            return new ResponseEntity<>(fileService.saveFile(id, path, file),
-                    HttpStatus.OK);
+            return fileService.loadFile(id, path);
+
+        } catch (IOException e) {
+            return new ResponseEntity<>("Error reading file!",
+                    HttpStatus.BAD_REQUEST);
+        } catch (IllegalArgumentException | InvalidIdException e) {
+            return new ResponseEntity<>("invalid book id - " + id,
+                    HttpStatus.BAD_REQUEST);
+        } catch (BookNotFoundException e) {
+            return new ResponseEntity<>("No book found for this ID - " + id,
+                    HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    private ResponseEntity<?> saveFileExcHandling(String id, String path, MultipartFile file, String type) {
+        try {
+            return fileService.saveFile(id, path, file, type);
 
         } catch (IOException e) {
             return new ResponseEntity<>("Error writing file - " + file.getOriginalFilename(),

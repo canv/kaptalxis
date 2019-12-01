@@ -2,7 +2,6 @@ package com.app.kaptalxis.services.implementations;
 
 import com.app.kaptalxis.exceptions.BookCopyFoundException;
 import com.app.kaptalxis.exceptions.BookNotFoundException;
-import com.app.kaptalxis.exceptions.InvalidIdException;
 import com.app.kaptalxis.models.Book;
 import com.app.kaptalxis.repositories.BookRepository;
 import com.app.kaptalxis.services.BookService;
@@ -12,7 +11,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -44,12 +42,11 @@ public class BookServiceImplementation implements BookService {
 
     @Override
     public Book createBook(Book book) {
-        if(book == null) throw new BookNotFoundException();
+        if (book == null) throw new BookNotFoundException();
         boolean isNotPresentByTitle = bookRepository
                 .findByTitleIgnoreCase(book.getTitle()) == null;
         if (isNotPresentByTitle) {
             book.setReadAlready(false);
-//            book.setId(UUID.randomUUID());
             bookRepository.save(book);
             return book;
         } else throw new BookCopyFoundException();
@@ -88,6 +85,6 @@ public class BookServiceImplementation implements BookService {
     public Book getBookById(UUID bookId) {
         return bookRepository
                 .findById(bookId)
-                .orElse(null);
+                .orElseThrow(BookNotFoundException::new);
     }
 }
