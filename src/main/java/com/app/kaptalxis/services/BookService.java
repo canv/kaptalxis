@@ -22,4 +22,6 @@ public interface BookService {
     Page getPages(Integer size, Integer page);
 
     Book getBookById(UUID bookId);
+
+    Page testFindBooksByPhrase(String phrase, Integer size, Integer page );
 }

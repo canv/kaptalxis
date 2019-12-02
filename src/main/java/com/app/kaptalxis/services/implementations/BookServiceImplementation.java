@@ -87,4 +87,9 @@ public class BookServiceImplementation implements BookService {
                 .findById(bookId)
                 .orElseThrow(BookNotFoundException::new);
     }
+
+    @Override
+    public Page testFindBooksByPhrase(String phrase, Integer size, Integer page) {
+        return bookRepository.findByDescription(phrase,PageRequest.of(page, size));
+    }
 }

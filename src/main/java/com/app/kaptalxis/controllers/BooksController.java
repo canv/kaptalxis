@@ -50,6 +50,15 @@ public class BooksController {
         return ResponseEntity.ok(bookService.getPages(size, page));
     }
 
+    @GetMapping("/testFindByPhrase/{phrase}")
+    public ResponseEntity<Page> testFindByPhrase(@PathVariable("phrase") String phrase,
+                                                 @RequestParam(value = "size", defaultValue = "1") Integer size,
+                                                 @RequestParam(value = "page", defaultValue = "1") Integer page) {
+        if (phrase != null && !phrase.isEmpty()) {
+            return ResponseEntity.ok(bookService.testFindBooksByPhrase(phrase, size, page));
+        } else return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+    }
+
     @GetMapping("/findByPhrase/{phrase}")
     public ResponseEntity<List<Book>> findByPhrase(@PathVariable("phrase") String phrase) {
         if (phrase != null && !phrase.isEmpty()) {
