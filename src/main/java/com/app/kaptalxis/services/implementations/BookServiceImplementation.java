@@ -2,15 +2,15 @@ package com.app.kaptalxis.services.implementations;
 
 import com.app.kaptalxis.exceptions.BookCopyFoundException;
 import com.app.kaptalxis.exceptions.BookNotFoundException;
+import com.app.kaptalxis.exceptions.InvalidSearchWordException;
 import com.app.kaptalxis.models.Book;
 import com.app.kaptalxis.repositories.BookRepository;
 import com.app.kaptalxis.services.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -20,19 +20,20 @@ public class BookServiceImplementation implements BookService {
     private BookRepository bookRepository;
 
     @Override
-    public List<Book> findBooksByPhrase(String phrase) {
-        return bookRepository
-                .findByDescriptionIgnoreCase(phrase);
+    public Page<Book> findBooksByPhrase(String phrase, Pageable pageRequest) {
+        if (phrase != null && !phrase.isEmpty()) {
+            return bookRepository.findByDescriptionContaining(phrase, pageRequest);
+        } else throw new InvalidSearchWordException();
     }
 
     @Override
-    public List<Book> getAllBooks() {
-        return bookRepository.findAll();
+    public Page<Book> getBooks(Pageable pageRequest) {
+        return bookRepository.findAll(pageRequest);
     }
 
     @Override
     public Book markRead(UUID bookId) {
-        Book readBook = getBookById(bookId);
+        Book readBook = findBookById(bookId);
         if (readBook != null) {
             readBook.setReadAlready(true);
             bookRepository.save(readBook);
@@ -54,7 +55,7 @@ public class BookServiceImplementation implements BookService {
 
     @Override
     public Book updateBook(Book book) {
-        Book updateBook = getBookById(book.getId());
+        Book updateBook = findBookById(book.getId());
         if (updateBook != null) {
             String updateTitle = book.getTitle();
             if (updateTitle != null)
@@ -75,21 +76,9 @@ public class BookServiceImplementation implements BookService {
     }
 
     @Override
-    public Page getPages(Integer size, Integer page) {
-        if (size != null | page != null)
-            return bookRepository.findAll(PageRequest.of(page, size));
-        return null;
-    }
-
-    @Override
-    public Book getBookById(UUID bookId) {
+    public Book findBookById(UUID bookId) {
         return bookRepository
                 .findById(bookId)
                 .orElseThrow(BookNotFoundException::new);
-    }
-
-    @Override
-    public Page testFindBooksByPhrase(String phrase, Integer size, Integer page) {
-        return bookRepository.findByDescription(phrase,PageRequest.of(page, size));
     }
 }
