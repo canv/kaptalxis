@@ -49,7 +49,10 @@ public class FileServiceImplementation implements FileService {
 
                 bookFile.transferTo(new File(fileDir));
 
-                book.setFilePath(fileDir);
+                if (type.equals("File"))
+                    book.setFilePath(fileDir);
+                else if (type.equals("Img")) book.setImgPath(fileDir);
+                else throw new InvalidFileException();
                 bookRepository.save(book);
 
                 String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
@@ -62,7 +65,7 @@ public class FileServiceImplementation implements FileService {
     }
 
     @Override
-    public ResponseEntity<InputStreamResource> loadFile(String id, String uploadPath)
+    public ResponseEntity<InputStreamResource> loadFile(String id, String type)
             throws IOException, IllegalArgumentException,
             InvalidIdException, BookNotFoundException {
 

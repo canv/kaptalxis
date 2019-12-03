@@ -2,6 +2,7 @@ package com.app.kaptalxis.services;
 
 import com.app.kaptalxis.models.Book;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,11 +16,9 @@ public interface BookService {
 
     Book markRead(UUID bookId);
 
-    List<Book> getAllBooks();
+    Book findBookById(UUID bookId);
 
-    List<Book> findBooksByPhrase(String phrase);
+    Page<Book> findBooksByPhrase(String phrase, Pageable pageRequest);
 
-    Page getPages(Integer size, Integer page);
-
-    Book getBookById(UUID bookId);
+    Page<Book> getBooks(Pageable pageRequest);
 }
