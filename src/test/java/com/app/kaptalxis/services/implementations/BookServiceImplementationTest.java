@@ -3,11 +3,11 @@ package com.app.kaptalxis.services.implementations;
 import com.app.kaptalxis.models.Book;
 import com.app.kaptalxis.repositories.BookRepository;
 import com.app.kaptalxis.services.BookService;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
@@ -22,6 +22,12 @@ import static org.mockito.Mockito.verify;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
+@AutoConfigureMockMvc
+//@TestPropertySource("/application-test.properties")
+//@Sql(value = {"/testdb/create_books_before.sql"},
+//        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+//@Sql(value = {"/testdb/books_after.sql"},
+//        executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 public class BookServiceImplementationTest {
 
     @Autowired
@@ -57,7 +63,7 @@ public class BookServiceImplementationTest {
         Book testBook = new Book();
         String testDesc = "testDescription";
         testBook.setDescription("testDesc");
-        Pageable testPageable =  PageRequest.of(0, 1);
+        Pageable testPageable = PageRequest.of(0, 1);
 
         Page foundBooks = bookService.findBooksByPhrase(testDesc, testPageable);
 
@@ -65,7 +71,6 @@ public class BookServiceImplementationTest {
         verify(bookRepository, times(1))
                 .findByDescriptionContaining(testDesc, testPageable);
     }
-
 
 
     @Test
@@ -82,8 +87,30 @@ public class BookServiceImplementationTest {
 //        Assert.assertTrue(book.isReadAlready());
         verify(bookRepository, times(1))
                 .save(ArgumentMatchers.any(Book.class));
-
-
     }
 
+    @Test
+    public void updateBookTest() {
+        Book testBook = new Book();
+        UUID testID = UUID.randomUUID();
+        testBook.setDescription("testDescription");
+        testBook.setTitle("testTitle");
+        testBook.setIsbn("testISBN");
+        testBook.setPrintYear(1111);
+        testBook.setId(testID);
+        bookService.createBook(testBook);
+
+        Book updateBook = new Book();
+        updateBook.setDescription("updateDescription");
+        updateBook.setTitle("updateTitle");
+        updateBook.setIsbn("updateISBN");
+        updateBook.setPrintYear(1112);
+        updateBook.setId(testID);
+
+
+        bookService.updateBook(updateBook);
+
+        verify(bookRepository, times(1))
+                .save(ArgumentMatchers.any(Book.class));
+    }
 }
