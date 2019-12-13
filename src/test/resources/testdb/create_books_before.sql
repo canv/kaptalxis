@@ -17,7 +17,7 @@ insert into books (id, title, author, description, isbn, print_year, read_alread
     'testAuthor',
     'testDescriptionTwo',
     'testISBN',
-    '1111',
+    '1112',
     'false',
     'test/img/path',
     'test/file/path');

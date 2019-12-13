@@ -109,7 +109,6 @@ public class BookServiceImplementationTest {
         updateBook.setPrintYear(1112);
         updateBook.setId(testID);
 
-
         bookService.updateBook(updateBook);
 
         verify(bookRepository, times(1))
