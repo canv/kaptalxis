@@ -1,5 +1,6 @@
 package com.app.kaptalxis.services.implementations;
 
+import com.app.kaptalxis.exceptions.BookNotFoundException;
 import com.app.kaptalxis.models.Book;
 import com.app.kaptalxis.repositories.BookRepository;
 import com.app.kaptalxis.services.BookService;
@@ -19,8 +20,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.UUID;
 
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -81,10 +81,12 @@ public class BookServiceImplementationTest {
         UUID testID = UUID.randomUUID();
         testBook.setReadAlready(false);
         testBook.setId(testID);
+        doReturn(spy(testBook))
+                .when(bookRepository).findById(UUID.fromString("421c8960-047f-4d15-bccf-1397d9f00d05")).orElseThrow(BookNotFoundException::new);
 
-        bookService.markRead(testID);
+        bookService.markRead(UUID.fromString("421c8960-047f-4d15-bccf-1397d9f00d05"));
 
-        Book book = bookService.findBookById(testID);
+//        Book book = bookService.findBookById(testID);
 
 //        Assert.assertTrue(book.isReadAlready());
         verify(bookRepository, times(1))
