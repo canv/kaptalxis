@@ -1,9 +1,9 @@
 package com.app.kaptalxis.services.implementations;
 
-import com.app.kaptalxis.exceptions.BookNotFoundException;
 import com.app.kaptalxis.models.Book;
 import com.app.kaptalxis.repositories.BookRepository;
 import com.app.kaptalxis.services.BookService;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
@@ -18,6 +18,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.mockito.Mockito.*;
@@ -69,7 +70,6 @@ public class BookServiceImplementationTest {
 
         Page foundBooks = bookService.findBooksByPhrase(testDesc, testPageable);
 
-//        Assert.assertTrue(foundBooks.hasContent(testBook));
         verify(bookRepository, times(1))
                 .findByDescriptionContaining(testDesc, testPageable);
     }
@@ -78,17 +78,14 @@ public class BookServiceImplementationTest {
     @Test
     public void markReadTest() {
         Book testBook = new Book();
-        UUID testID = UUID.randomUUID();
+        UUID testID = UUID.fromString("421c8960-047f-4d15-bccf-1397d9f00d05");
         testBook.setReadAlready(false);
         testBook.setId(testID);
-        doReturn(spy(testBook))
-                .when(bookRepository).findById(UUID.fromString("421c8960-047f-4d15-bccf-1397d9f00d05")).orElseThrow(BookNotFoundException::new);
+        when(bookRepository.findById(testID)).thenReturn(Optional.of(testBook));
 
-        bookService.markRead(UUID.fromString("421c8960-047f-4d15-bccf-1397d9f00d05"));
+        bookService.markRead(testID);
 
-//        Book book = bookService.findBookById(testID);
-
-//        Assert.assertTrue(book.isReadAlready());
+        Assert.assertTrue(testBook.isReadAlready());
         verify(bookRepository, times(1))
                 .save(ArgumentMatchers.any(Book.class));
     }
@@ -96,13 +93,7 @@ public class BookServiceImplementationTest {
     @Test
     public void updateBookTest() {
         Book testBook = new Book();
-        UUID testID = UUID.randomUUID();
-        testBook.setDescription("testDescription");
-        testBook.setTitle("testTitle");
-        testBook.setIsbn("testISBN");
-        testBook.setPrintYear(1111);
-        testBook.setId(testID);
-        bookService.createBook(testBook);
+        UUID testID = UUID.fromString("411c8960-047f-4d15-bccf-1397d9f00d05");
 
         Book updateBook = new Book();
         updateBook.setDescription("updateDescription");
@@ -111,8 +102,15 @@ public class BookServiceImplementationTest {
         updateBook.setPrintYear(1112);
         updateBook.setId(testID);
 
+        when(bookRepository.findById(testID)).thenReturn(Optional.of(testBook));
+
         bookService.updateBook(updateBook);
 
+
+        Assert.assertEquals(testBook.getDescription(),"updateDescription");
+        Assert.assertEquals(testBook.getTitle(),"updateTitle");
+        Assert.assertEquals(testBook.getIsbn(),"updateISBN");
+        Assert.assertEquals(testBook.getPrintYear(),1112);
         verify(bookRepository, times(1))
                 .save(ArgumentMatchers.any(Book.class));
     }
